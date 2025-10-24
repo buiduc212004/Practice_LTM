@@ -2,8 +2,9 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Other/File.java to edit this template
  */
-package Practice_UDP.Vu5h4am0_UDP_Object;
+package UDP;
 
+import Practice_UDP.Vu5h4am0_UDP_Object.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -39,27 +40,22 @@ public class Vu5h4am0 {
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, address, port);
             socket.send(sendPacket);
             
-            byte[] receiveData = new byte[65535];
+            byte[] receiveData = new byte[1024];
             DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
             socket.receive(receivePacket);
             
-            ByteArrayInputStream bais = new ByteArrayInputStream(receivePacket.getData(), 0, receivePacket.getLength());
-            byte[] requestIDBytes = new byte[8];
-            bais.read(requestIDBytes, 0, 8);
-            String requestID = new String(requestIDBytes);
+            String requestId = new String(receivePacket.getData(), 0, 8);
+            
+            ByteArrayInputStream bais = new ByteArrayInputStream(receivePacket.getData(), 8, receivePacket.getLength() - 8);
             
             ObjectInputStream ois = new ObjectInputStream(bais);
             Product product = (Product) ois.readObject();
             
-            product.setName(product.getName());
-            product.setQuantity(product.getQuantity());
+            product.setName(normalizeName(product.getName()));
+            product.setQuantity(normalizeQuantity(product.getQuantity()));
             
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            byte[] requestIDBytesSend = requestID.getBytes();
-            baos.write(requestIDBytesSend, 0, Math.min(requestIDBytesSend.length, 8));
-            while(baos.size() < 8){
-                baos.write(' ');
-            }
+            baos.write(requestId.getBytes());
             
             ObjectOutputStream oos = new ObjectOutputStream(baos);
             oos.writeObject(product);
